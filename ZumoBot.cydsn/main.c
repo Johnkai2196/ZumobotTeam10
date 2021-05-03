@@ -785,7 +785,7 @@ void zmain(void)
   uint32_t stopTime = 0; //stop time
   struct sensors_ dig;   // sensor
   uint32_t count = 0;    // line counter
-  int summa,x=0,y=0,d,decider,rDirection=0,lDirection=0,sDirection=0,randomTime=0;            // to count all dig together
+  int summa,x=0,y=0,d,decider,rDirection=0,lDirection=0,sDirection=0,randomTime=0,round=0;            // to count all dig together
   IR_Start();           // start the ir button
   Ultra_Start();              // Ultra Sonic Start function
   reflectance_start(); // start the sensor
@@ -821,62 +821,63 @@ void zmain(void)
 
   motor_forward(0, 0);
   IR_wait();    //waits for the button press
-/*
-	     while(x<14){
-        reflectance_digital(&dig); 
-        d = Ultra_GetDistance();
-        motor_forward(100,0);
-     
-      }*/
 while(x<14){
     d = Ultra_GetDistance();
     motor_forward(60,0);
 
     reflectance_digital(&dig);
-    if(sDirection==0){
-      while (dig.L3 && dig.R3) {
+    
+
+    if(sDirection==0){ //if the direction is straight
+      while (dig.L3 || dig.R3) {
         reflectance_digital(&dig);
-        if (!(dig.L3 && dig.R3)) { //if the dig L3 and R3 does not senses anything increase count and print ready
+        if (!(dig.L3 || dig.R3)) { //if the dig L3 and R3 does not senses anything increase count and print ready
           x++;
           print_mqtt(BUTTON_T, "%d and y %d",x,y);
-         print_mqtt(BUTTON_T, "distance %d",d);
+
         }
-      }}
+      }
+    
+    }
+
     if(d<7){
     while(sDirection==0){
-        
-        
-         
+   
+            if(round==0){
             decider=rand() % 2+1;// decide what direction will turn
-            if(decider==1){
+            }
+            if((x==12&&y==3)||y==3||y>0||decider==1){
             while(dig.L1){
             reflectance_digital(&dig);
-            tank_mode_left(10,0);// turn left tank
+            tank_mode_left(20,0);// turn left tank
             }
             while(!(dig.L1&&dig.R1)){
             reflectance_digital(&dig);
-            tank_mode_left(9,0);// turn left tank
+            tank_mode_left(19,0);// turn left tank
          
             sDirection=1;
-             lDirection=1;
+            lDirection=1;
+            round=1;
+            decider=0;
             }
-              y++;
+              y--;
             }
             
-            if(decider==2){
+            else if(y==-3||y<=0||decider==2){
             while(dig.R1){
             reflectance_digital(&dig);
-            tank_mode_right(10,0);// turn left tank
+            tank_mode_right(20,0);// turn left tank
             
             }
             while(!(dig.L1&&dig.R1)){
             reflectance_digital(&dig);
-            tank_mode_right(9,0);// turn left tank
-            
+            tank_mode_right(19,0);// turn left tank
             sDirection=1;
             rDirection=1;
+            round=1;
+            decider=0;
             }
-            y--;}
+            y++;}
         
 
    
@@ -884,18 +885,18 @@ while(x<14){
    }
     
 }    if (sDirection==1) { // if 
-      while (dig.L3 && dig.R3) {
+      while (dig.L3 &&dig.R3) {
         reflectance_digital(&dig);
         if (!(dig.L3 && dig.R3)) { //if the dig L3 and R3 does not senses anything increase count and print ready
             vTaskDelay(500);
             if(rDirection==1){
             while(dig.L1){
             reflectance_digital(&dig);
-            tank_mode_left(10,0);// turn left tank
+            tank_mode_left(20,0);// turn left tank
             }
             while(!(dig.L1&&dig.R1&&dig.R2)){
             reflectance_digital(&dig);
-            tank_mode_left(9,0);// turn left tank
+            tank_mode_left(19,0);// turn left tank
         
             
             }sDirection=0;
@@ -903,12 +904,12 @@ while(x<14){
             }else if(lDirection==1){
              while(dig.R1){
             reflectance_digital(&dig);
-            tank_mode_right(10,0);// turn left tank
+            tank_mode_right(20,0);// turn left tank
             
             }
             while(!(dig.L1&&dig.R1&&dig.L2)){
             reflectance_digital(&dig);
-            tank_mode_right(9,0);// turn left tank
+            tank_mode_right(19,0);// turn left tank
            
             
             }sDirection=0;
@@ -922,7 +923,8 @@ if(!dig.L1){
 }else if(!dig.R1){
 tank_mode_left(9,0);// turn left tank
 }
-}}
+}
+}
 #endif
 #if 0
 void zmain(void){
