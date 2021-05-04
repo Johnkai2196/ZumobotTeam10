@@ -171,7 +171,7 @@ if (SW1_Read() == PRESSED) { //when the buttos is press
 }
 #endif
 
-#if 0
+#if 1
 //project 2
 void zmain(void) {
 
@@ -191,6 +191,7 @@ void zmain(void) {
   reflectance_set_threshold(
       14000, 9000, 11000, 11000, 9000,
       14000); // set center sensor threshold to 11000 and others to 9000
+// when blackness value is over threshold the sensors reads 1, otherwise 0
   reflectance_digital(&dig);
 
   while (SW1_Read() != PRESSED) // while value is not 0
@@ -286,6 +287,7 @@ motor_forward(0, 0);
 motor_stop();
 
 stopTime = endTime - starTime;
+print_mqtt(BUTTON_T, "/test %d", starTime);
 print_mqtt(BUTTON_T, "/stop %d", endTime);
 print_mqtt(BUTTON_T, "/time %d", stopTime);
 while (true) {
@@ -294,7 +296,7 @@ while (true) {
 }
 #endif
 
-#if 1
+#if 0
 
 //project 3
 void zmain(void) 
