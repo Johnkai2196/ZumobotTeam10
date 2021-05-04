@@ -785,7 +785,7 @@ void zmain(void)
   uint32_t stopTime = 0; //stop time
   struct sensors_ dig;   // sensor
   uint32_t count = 0;    // line counter
-  int summa,x=0,y=0,d,decider,rDirection=0,lDirection=0,sDirection=0,randomTime=0,round=0;            // to count all dig together
+  int summa,x=0,y=0,d,decider,rDirection=0,lDirection=0,sDirection=0,round=0;            // to count all dig together
   IR_Start();           // start the ir button
   Ultra_Start();              // Ultra Sonic Start function
   reflectance_start(); // start the sensor
@@ -840,89 +840,59 @@ while(x<14){
     
     }
 
-    if(d<7){
-    while(sDirection==0){
-   
-            if(round==0){
-            decider=rand() % 2+1;// decide what direction will turn
-            }
-            if((x==12&&y==3)||y==3||y>0||decider==1){
-            while(dig.L1){
-            reflectance_digital(&dig);
-            tank_mode_left(20,0);// turn left tank
-            }
-            while(!(dig.L1&&dig.R1)){
-            reflectance_digital(&dig);
-            tank_mode_left(19,0);// turn left tank
-         
-            sDirection=1;
-            lDirection=1;
-            round=1;
-            decider=0;
-            }
-              y--;
-            }
-            
-            else if(y==-3||y<=0||decider==2){
-            while(dig.R1){
-            reflectance_digital(&dig);
-            tank_mode_right(20,0);// turn left tank
-            
-            }
-            while(!(dig.L1&&dig.R1)){
-            reflectance_digital(&dig);
-            tank_mode_right(19,0);// turn left tank
-            sDirection=1;
-            rDirection=1;
-            round=1;
-            decider=0;
-            }
-            y++;}
-        
-
-   
-    
-   }
-    
-}    if (sDirection==1) { // if 
-      while (dig.L3 &&dig.R3) {
+        if(lDirection==1){ //if the direction is straight
+      while (dig.L3 || dig.R3) {
         reflectance_digital(&dig);
-        if (!(dig.L3 && dig.R3)) { //if the dig L3 and R3 does not senses anything increase count and print ready
-            vTaskDelay(500);
-            if(rDirection==1){
-            while(dig.L1){
+        if (!(dig.L3 || dig.R3)) { //if the dig L3 and R3 does not senses anything increase count and print ready
+          y--;
+          print_mqtt(BUTTON_T, "%d and y %d",x,y);
+
+        }
+      }
+    
+    }
+            if(rDirection==1){ //if the direction is straight
+      while (dig.L3 || dig.R3) {
+        reflectance_digital(&dig);
+        if (!(dig.L3 || dig.R3)) { //if the dig L3 and R3 does not senses anything increase count and print ready
+          y++;
+          print_mqtt(BUTTON_T, "%d and y %d",x,y);
+   
+        }
+      }
+    
+    }
+                 if(y==3){
+          while(!dig.L1&&!dig.R1){
             reflectance_digital(&dig);
-            tank_mode_left(20,0);// turn left tank
+            tank_mode_left(10,0);// turn left tank  
+            sDirection=0;
+            rDirection=0;
             }
-            while(!(dig.L1&&dig.R1&&dig.R2)){
+       
+        }
+    if(d<7){
+       
+        if(round==0){
+          while(dig.R1){
             reflectance_digital(&dig);
-            tank_mode_left(19,0);// turn left tank
-        
-            
-            }sDirection=0;
-             rDirection=0;
-            }else if(lDirection==1){
-             while(dig.R1){
-            reflectance_digital(&dig);
-            tank_mode_right(20,0);// turn left tank
-            
+            tank_mode_right(10,0);// turn left tank
             }
             while(!(dig.L1&&dig.R1&&dig.L2)){
             reflectance_digital(&dig);
-            tank_mode_right(19,0);// turn left tank
-           
-            
-            }sDirection=0;
-             rDirection=0;
-            }
+            tank_mode_right(10,0);// turn left tank
+             sDirection=1;
+            rDirection=1;
+            round=1;
+   }
         }
-
-}}
-if(!dig.L1){
+}    
+  if(!dig.L1){
  tank_mode_right(10,0);// turn left tank
 }else if(!dig.R1){
 tank_mode_left(9,0);// turn left tank
 }
+    
 }
 }
 #endif
