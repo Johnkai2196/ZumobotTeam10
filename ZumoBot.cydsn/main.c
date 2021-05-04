@@ -302,7 +302,7 @@ void zmain(void)
   uint32_t stopTime = 0; //stop time
   struct sensors_ dig;   // sensor
   uint32_t count = 0;    // line counter
-  int summa,x=0,y=0,d,decider,rDirection=0,lDirection=0,sDirection=0,round=0;            // to count all dig together
+  int summa,x=0,y=0,d,decider,rDirection=0,lDirection=0,sDirection=0,round=0,result;            // to count all dig together
   IR_Start();           // start the ir button
   Ultra_Start();              // Ultra Sonic Start function
   reflectance_start(); // start the sensor
@@ -417,10 +417,13 @@ while(x<14){
     reflectance_digital(&dig);
 tank_mode_left(9,0);// turn left tank
 }
-        if (!(dig.L1 && dig.R1)){ //on the border
-            motor_forward(0,0);
-            tank_mode_left(60,0);// turn left tank
-                 sDirection=0;
+result=dig.L1 + dig.R1;
+        if (result==0){ //on the border
+           while(result==0){
+            reflectance_digital(&dig);
+            result=dig.L1 + dig.R1;
+            tank_mode_left(150,0);// turn left tank
+         }
         }
 }
 }
