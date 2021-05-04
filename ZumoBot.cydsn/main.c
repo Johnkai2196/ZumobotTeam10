@@ -174,7 +174,7 @@ if (SW1_Read() == PRESSED) { //when the buttos is press
 }
 #endif
 
-#if 1
+#if 0
 //project 2
 void zmain(void) {
 
@@ -294,7 +294,6 @@ motor_forward(0, 0);
 motor_stop();
 
 stopTime = endTime - starTime;
-print_mqtt(BUTTON_T, "/test %d", starTime);
 print_mqtt(BUTTON_T, "/stop %d", endTime);
 print_mqtt(BUTTON_T, "/time %d", stopTime);
 while (true) {
