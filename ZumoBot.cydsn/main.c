@@ -69,7 +69,7 @@ void tank_mode_right(uint8_t speed, uint32_t delay) {
 #define LAP_T "Group_10/Lap"
 //project 1
 
-//made by jekku
+
 
 #if 0
 void zmain(void)
@@ -104,6 +104,7 @@ BatteryLed_Write(OFF);        // Turns led off
 
 reflectance_digital(&dig);
 
+//LINE UP CODE
 while (count < 1) { //while the count is below 1
   reflectance_digital(&dig);
   motor_forward(50, 0); // moves forward
@@ -124,6 +125,7 @@ IR_wait(); //waits for the button press of ir
 startTime = xTaskGetTickCount(); //get the time when on position
 print_mqtt(BUTTON_T, "Start %d", startTime);//print start time
     
+// THE DODGING CODE
 while (count < 2) {
   turn=rand() % 111+60; // random turn of decgress
   movementTime=xTaskGetTickCount(); //coounts tick
@@ -153,7 +155,8 @@ while (count < 2) {
       print_mqtt(BUTTON_T, "/obstacle %d", xTaskGetTickCount());
     }
   }
-        
+
+// STOP CODE        
 if (SW1_Read() == PRESSED) { //when the buttos is press
   BatteryLed_Write(ON); // Turns led on
   motor_start(0, 0);
@@ -162,7 +165,7 @@ if (SW1_Read() == PRESSED) { //when the buttos is press
   print_mqtt(BUTTON_T, "/stop %d", movementTime); //Stop time (when the user button is pressed robot stops and sends stop time stamp)
   print_mqtt(BUTTON_T, "/time %d", timepress);//Run time (from start to finish, number of milliseconds between start and stop)
   while (true) {
-    vTaskDelay(100); //when done
+    vTaskDelay(100); //when robot is done
   }
 }
 
@@ -200,15 +203,16 @@ void zmain(void) {
 
   reflectance_digital(&dig);
 
+//LINE UP CODE
   while (count < 1) { //while the count is below 1
     reflectance_digital(&dig);
     motor_forward(50, 0); // moves forward to line
-    if (dig.L3 && dig.R3) { // if 
-      while (dig.L3 && dig.R3) {
+    if (dig.L3 && dig.R3) { // if the dig L3 & R3 detect anything, it will do the code below. 
+      while (dig.L3 && dig.R3) { //while dig L3 & R3 detect anything, it will do the code below. 
         reflectance_digital(&dig);
         if (!(dig.L3 && dig.R3)) { //if the dig L3 and R3 does not senses anything increase count and print ready
-          count++;
-          print_mqtt(BUTTON_T, "Ready line");
+          count++; // increases the count by one
+          print_mqtt(BUTTON_T, "Ready line"); // the robot is in a ready position
         }
       }
     }
@@ -216,16 +220,18 @@ void zmain(void) {
 
   motor_forward(0, 0);
   IR_wait();    //waits for the button press
-  starTime = xTaskGetTickCount(); //counts the boot 
-  print_mqtt(BUTTON_T, "/Start %d", starTime); //
+  starTime = xTaskGetTickCount(); //counts from the time when robot was booted
+  print_mqtt(BUTTON_T, "/Start %d", starTime); // start time
   reflectance_digital(&dig);
   motor_forward(255, 10);
-  while (count < 2) { //while the count is below 2
-    xTaskGetTickCount();
+
+//COURSE CODE
+  while (count < 2) { //while the count is below 2, continue
+    xTaskGetTickCount();    // counts the seconds when robot is moving
     reflectance_digital(&dig);
     summa = dig.L3 + dig.R3 + dig.L2 + dig.R2 + dig.L1 + dig.R1; //add to summa 
     if (summa == 6) { //if all dig together is equal to 6 it will peform the code below
-      while (dig.L3 && dig.R3) {    //if 
+      while (dig.L3 && dig.R3) {  
         motor_forward(170, 0);
         reflectance_digital(&dig);
         if (!(dig.L3 && dig.R3)) {  //if the dig L3 and R3 does not senses anything increase count
@@ -238,7 +244,7 @@ else if (dig.L1 && dig.R1) {
 }
 else if ((dig.L2 || dig.L3) && dig.L3) {
   if (!dig.L1 && !dig.R1) {
-    print_mqtt(BUTTON_T, "/miss %d", xTaskGetTickCount());
+    print_mqtt(BUTTON_T, "/miss %d", xTaskGetTickCount()); //prints when the line is 'miss'
   }
   motor_turn(0, 255, 25);
 }
@@ -255,8 +261,9 @@ else if (dig.L2 && dig.L1) {
   motor_turn(0, 240, 25);
 }
 }
+// ALIGNMENT CODE
 while (count < 3) {
-  endTime = xTaskGetTickCount();
+  endTime = xTaskGetTickCount(); // end time is to count the whole course from booting to the end
   reflectance_digital(&dig);
   motor_forward(50, 0);
 
