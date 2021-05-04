@@ -162,7 +162,7 @@ if (SW1_Read() == PRESSED) { //when the buttos is press
   print_mqtt(BUTTON_T, "/stop %d", movementTime); //Stop time (when the user button is pressed robot stops and sends stop time stamp)
   print_mqtt(BUTTON_T, "/time %d", timepress);//Run time (from start to finish, number of milliseconds between start and stop)
   while (true) {
-    vTaskDelay(100);
+    vTaskDelay(100); //when done
   }
 }
 
