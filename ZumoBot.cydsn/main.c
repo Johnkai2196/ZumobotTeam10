@@ -78,7 +78,7 @@ void tank_mode_right(uint8_t speed, uint32_t delay) {
 
 
 
-#if 1
+#if 0
 void zmain(void)
 {
     Ultra_Start();              // Ultra Sonic Start function
@@ -185,7 +185,7 @@ if (SW1_Read() == PRESSED) { // when the buttos is press
 }
 #endif
 
-#if 0
+#if 1
 //project 2
 void zmain(void) {
 
@@ -196,6 +196,7 @@ void zmain(void) {
   uint32_t count = 0;    // line counter
   int summa;            // to count all dig together
   IR_Start();           // start the ir button
+
 
   reflectance_start(); // start the sensor
 
@@ -253,23 +254,32 @@ while (count < 2) {    // while the count is below 2, continue
       }
     }
   } else if (dig.L1 && dig.R1) {
+       if (!dig.L1 && !dig.R1) {
+      print_mqtt(MISS, "%d", xTaskGetTickCount());
+    }
     motor_forward(255, 10);
   } else if ((dig.L2 || dig.L3) && dig.L3) {
-    if (!dig.L1 && !dig.R1) {
-      print_mqtt(MISS, "%d",
-                 xTaskGetTickCount()); // prints when the line is 'miss'
+       if (!dig.L1 && !dig.R1) {
+      print_mqtt(MISS, "%d", xTaskGetTickCount());
     }
     motor_turn(0, 255, 25);
   } else if ((dig.R2 || dig.R3) && dig.R3) {
-    if (!dig.L1 && !dig.R1) {
+       if (!dig.L1 && !dig.R1) {
       print_mqtt(MISS, "%d", xTaskGetTickCount());
     }
     motor_turn(255, 0, 25);
   } else if (dig.R2 && dig.R1) {
+       if (!dig.L1 && !dig.R1) {
+      print_mqtt(MISS, "%d", xTaskGetTickCount());
+    }
     motor_turn(240, 0, 25);
   } else if (dig.L2 && dig.L1) {
+       if (!dig.L1 && !dig.R1) {
+      print_mqtt(MISS, "%d", xTaskGetTickCount());
+    }
     motor_turn(0, 240, 25);
   }
+
 }
 // ALIGNMENT CODE
 while (count < 3) {
@@ -286,6 +296,9 @@ while (count < 3) {
       }
     }
   } else if (dig.L1 && dig.R1) {
+        if (!dig.L1 && !dig.R1) {
+      print_mqtt(MISS, "%d", xTaskGetTickCount());
+    }
     motor_forward(170, 10);
   } else if (!dig.L1) {
     if (!dig.L1 && !dig.R1) {
@@ -312,7 +325,7 @@ while (true) {
 }
 #endif
 
-#if 1
+#if 0
 
 //project 3
 void zmain(void) 
@@ -370,7 +383,7 @@ while(x<14){
       while (dig.L3 || dig.R3) {
         reflectance_digital(&dig);
         if (dig.L2&&dig.L1){
-        if (!(dig.R3||dig.L3)) { //if the dig L3 and R3 does not senses anything increase count and print ready
+        if (!dig.R3&&!dig.L3&&dig.L1&&dig.R1) { //if the dig L3 and R3 does not senses anything increase count and print ready
          
           x++;
           print_mqtt(READY, "x %d  %d",x,y);
@@ -398,7 +411,7 @@ while(x<14){
         if (!dig.R3&&!dig.L3&&dig.L1&&dig.R1) { //if the dig L3 and R3 does not senses anything increase count and print ready
 
          y++;
-        
+
 
           print_mqtt(READY, "%d and y++ %d",x,y);
    
@@ -474,10 +487,7 @@ if((x==12 && y==3)||(sDirection==0&&result==0)){
             result=dig.L1 + dig.R1;
             tank_mode_left(150,0);// turn left tank
            
-         }           
-    
-        
-
+         }
 } 
 
 else if (result==0&&rDirection==1){ //on the border
