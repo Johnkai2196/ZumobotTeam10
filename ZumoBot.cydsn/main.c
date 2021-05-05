@@ -76,8 +76,6 @@ void tank_mode_right(uint8_t speed, uint32_t delay) {
 #define LINE "Group_10/line "
 //project 1
 
-
-
 #if 0
 void zmain(void)
 {
@@ -324,167 +322,173 @@ while (true) {
 #endif
 
 #if 1
-//project 3
-void zmain(void) 
-{
-struct sensors_ dig; // sensor
-uint32_t count = 0;  // line counter
-int x = 0, y = 0, d, rDirection = 0, lDirection = 0, sDirection = 0, round = 0,
-    result;          // variable
-IR_Start();          // start the ir button
-Ultra_Start();       // Ultra Sonic Start function
-reflectance_start(); // start the sensor
+void correction(int left, int right);
+// project 3
+void zmain(void) {
+  struct sensors_ dig; // sensor
+  uint32_t count = 0;  // line counter
+  uint32_t x = 0, y = 0, d, rDirection = 0, lDirection = 0, sDirection = 0,
+           round = 0, test, taken,
+           result;     // variable
+  IR_Start();          // start the ir button
+  Ultra_Start();       // Ultra Sonic Start function
+  reflectance_start(); // start the sensor
 
-motor_start();                    // enable motor controller
-motor_forward(0, 0);              // set speed to zero to stop motors
-printf("\n\n\n!!!BOOT!!!\n\n\n"); // clear programming buffer
-reflectance_set_threshold(
-    14000, 9000, 11000, 11000, 9000,
-    14000); // set center sensor threshold to 11000 and others to 9000
-reflectance_digital(&dig);
-
-while (SW1_Read() != PRESSED) // while value is not 0
-  BatteryLed_Write(ON);       // Turns led on
-vTaskDelay(1000);             // sleep (in an infinite loop)
-BatteryLed_Write(OFF);        // Turns led off
-
-reflectance_digital(&dig);
-
-while (count < 1) { // while the count is below 1
+  motor_start();                    // enable motor controller
+  motor_forward(0, 0);              // set speed to zero to stop motors
+  printf("\n\n\n!!!BOOT!!!\n\n\n"); // clear programming buffer
+  reflectance_set_threshold(
+      9000, 9000, 11000, 11000, 9000,
+      9000); // set center sensor threshold to 11000 and others to 9000
   reflectance_digital(&dig);
-  motor_forward(50, 0);   // moves forward to line
-  if (dig.L3 && dig.R3) { // if
-    while (dig.L3 && dig.R3) {
-      reflectance_digital(&dig);
-      if (!(dig.L3 && dig.R3)) { // if the dig L3 and R3 does not senses
-                                 // anything increase count and print ready
-        count++;
-        print_mqtt(READY, "line");
-      }
-    }
-  }
-}
 
-motor_forward(0, 0);
-IR_wait(); // waits for the button press
-while (x < 14) {
-  d = Ultra_GetDistance();
-  motor_forward(60, 0);
+  while (SW1_Read() != PRESSED) // while value is not 0
+    BatteryLed_Write(ON);       // Turns led on
+  vTaskDelay(1000);             // sleep (in an infinite loop)
+  BatteryLed_Write(OFF);        // Turns led off
 
   reflectance_digital(&dig);
 
-  if (sDirection == 0) { // if the direction is straight
-    while (dig.L3 || dig.R3) {
-      reflectance_digital(&dig);
-      if (dig.L2 && dig.L1) {
-        if (!dig.R3 && !dig.L3 && dig.L1 &&
-            dig.R1) { // if the dig L3 and R3 does not senses anything increase
-                      // count and print ready
-          x++;
-          print_mqtt(READY, "x %d  %d", x, y);
+  while (count < 1) { // while the count is below 1
+    reflectance_digital(&dig);
+    motor_forward(50, 0);   // moves forward to line
+    if (dig.L3 && dig.R3) { // if
+      while (dig.L3 && dig.R3) {
+        reflectance_digital(&dig);
+        if (!(dig.L3 && dig.R3)) { // if the dig L3 and R3 does not senses
+                                   // anything increase count and print ready
+          count++;
+          print_mqtt(READY, "line"); // ready position
         }
       }
     }
   }
 
-  if (lDirection == 1) { // if the direction is straight
-    while (dig.L3 || dig.R3) {
+motor_forward(0, 0);
+IR_wait(); // waits for the button press
+
+while (x < 14) {
+  d = Ultra_GetDistance(); // gets the distance
+  // moves forward
+  motor_forward(75, 0);
+  // when blackness value is over threshold the sensors reads 1, otherwise 0
+  reflectance_digital(&dig);
+
+  if (sDirection == 0) {       // if the direction is straight
+    while (dig.L3 || dig.R3) { // while the dig L3 or R3 detect anything it will
+                               // do the code below
       reflectance_digital(&dig);
 
-      if (!dig.R3 && !dig.L3 &&
-          dig.L1) { // if the dig L3 and R3 does not senses anything increase
-                    // count and print ready
-        y--;
-        print_mqtt(READY, "%d and y-- %d", x, y);
+      if (!dig.R3 &&
+          !dig.L3) { // if the dig L3 and R3 does not senses anything increase
+
+        x++; // increase x
       }
     }
   }
-  if (rDirection == 1) { // if the direction is straight
-    while (dig.L3 || dig.R3) {
+
+  if (lDirection == 1) {       // if the direction is left
+    while (dig.L3 || dig.R3) { // while the dig L3 or R3 detect anything it will
+                               // do the code below
       reflectance_digital(&dig);
-      if (!dig.R3 && !dig.L3 && dig.L1 &&
-          dig.R1) { // if the dig L3 and R3 does not senses anything increase
-                    // count and print ready
 
-        y++;
+      if (!dig.R3 &&
+          !dig.L3) { // if the dig L3 and R3 does not senses anything increase
 
-        print_mqtt(READY, "%d and y++ %d", x, y);
+        y--; // decrease y
+        taken = 1;
       }
     }
-  }    
-if (d < 7) {
+  }
+  if (rDirection == 1) {       // if the direction is right
+    while (dig.L3 || dig.R3) { // while the dig L3 or R3 detect anything it will
+                               // do the code below
+      reflectance_digital(&dig);
+      if (!dig.R3 &&
+          !dig.L3) { // if the dig L3 and R3 does not senses anything increase
 
-  if (round == 0) {
+        y++; // increase y
+      }
+    }
+  }   
+if (d < 7) {        // if the distance is smaller then 7
+  if (round == 0) { // if round is zero
     while (dig.R1) {
       reflectance_digital(&dig);
-      tank_mode_right(10, 0); // turn left tank
+      tank_mode_right(30, 0); // turn right tank
     }
     while (!(dig.L1 && dig.R1 && dig.L2)) {
       reflectance_digital(&dig);
-      tank_mode_right(10, 0); // turn left tank
+      tank_mode_right(30, 0); // turn right tank
       sDirection = 1;
       rDirection = 1;
       round = 1;
     }
-  } else if (round == 1) {
+  } else if (round == 1) { // if round is one
     while (dig.L1) {
       reflectance_digital(&dig);
       tank_mode_left(10, 0); // turn left tank
     }
-    while (!(dig.L1 && dig.R1 && dig.L2)) {
+    while (!(dig.L1 && dig.R1)) {
       reflectance_digital(&dig);
       tank_mode_left(10, 0); // turn left tank
       sDirection = 1;
       lDirection = 1;
+      round = 2;
     }
   }
 }
-if (y == 0 && lDirection == 1) {
-  vTaskDelay(500);
-  while (dig.R1) {
+if (round == 2 && taken == 1 && lDirection == 1 &&
+    y <= 2) { // if all fill the requirement do the code below
+
+  vTaskDelay(150);
+  while (dig.L1) {
     reflectance_digital(&dig);
-    tank_mode_right(10, 0); // turn left tank
+    tank_mode_right(10, 0); // turn right tank
   }
-  while (!(dig.L1 && dig.R1 && dig.L2)) {
+
+  while (!(dig.L1 && dig.L2)) {
     reflectance_digital(&dig);
-    tank_mode_right(10, 0); // turn left tank
+    tank_mode_right(10, 0); // turn right tank
+    sDirection = 0;
+
+    lDirection = 0;
+    taken = 0;
   }
-  sDirection = 0;
-  lDirection = 0;
-  round = 0;
+  if (!(y == 0)) { // if y is not zero it will to the code below
+    round = 1;
+  } else if (y == 0) { // if y is zero it will to the code below
+    round = 0;
+  }
 }
 if (!dig.L1) {
-  reflectance_digital(&dig);
-  tank_mode_right(10, 0); // turn left tank
+  correction(0, 1); // correct the position of the robot so it will be straight
 }
 if (!dig.R1) {
-  reflectance_digital(&dig);
-  tank_mode_left(9, 0); // turn left tank
+  correction(1, 0);
 }
 
 result = dig.L1 + dig.R1;
-if ((x == 12 && y == 3) || (sDirection == 0 && result == 0)) {
+if ((x == 12 && y == 3) ||
+    (sDirection == 0 &&
+     result == 0)) { // if all fill the requirement do the code below
   lDirection = 1;
   sDirection = 1;
-  print_mqtt(READY, "1");
+
   while (!dig.L1) {
     reflectance_digital(&dig);
     tank_mode_left(10, 0); // turn left tank
   }
   while (!(dig.L1 && dig.R1 && dig.L2)) {
     reflectance_digital(&dig);
-    result = dig.L1 + dig.R1;
     tank_mode_left(150, 0); // turn left tank
   }
-}
-
-else if (result == 0 && rDirection == 1) { // on the border
+} else if (rDirection == 1) { // on the border
   print_mqtt(READY, "2");
 
   while (!(dig.L1 && dig.R1 && dig.L2)) {
     reflectance_digital(&dig);
-    result = dig.L1 + dig.R1;
-    tank_mode_left(150, 0); // turn left tank
+    motor_turn(0, 150, 0); // turn left tank
   }
   sDirection = 0;
   lDirection = 0;
@@ -492,6 +496,15 @@ else if (result == 0 && rDirection == 1) { // on the border
 }
 }
 #endif
+// costume code function
+// correct the position of the robot so it will be straight
+void correction(int left, int right) {
 
+  if (left == 1) {
+    tank_mode_left(9, 0); // turn left tank
+  } else if (right == 1) {
+    tank_mode_right(10, 0); // turn right tank
+  }
+}
 
 /* [] END OF FILE */
