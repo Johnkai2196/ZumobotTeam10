@@ -49,13 +49,13 @@
 #include "serial1.h"
 #include <unistd.h>
 
-//Lets CRUSH this all
+
 /**
  * @file    main.c
  * @brief   
  * @details  ** Enable global interrupt since Zumo library uses interrupts. **<br>&nbsp;&nbsp;&nbsp;CyGlobalIntEnable;<br>
 */
- 
+// *********Functions  for tank turning************ 
 void tank_mode_left(uint8_t speed, uint32_t delay) {
     SetMotors(1, 0, speed, speed, delay);
 }
