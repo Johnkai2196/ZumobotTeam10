@@ -48,6 +48,8 @@
 #include <sys/time.h>
 #include "serial1.h"
 #include <unistd.h>
+
+//Lets CRUSH this all
 /**
  * @file    main.c
  * @brief   
