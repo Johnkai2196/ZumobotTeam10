@@ -78,78 +78,75 @@ void tank_mode_right(uint8_t speed, uint32_t delay) {
 
 
 
-#if 0
+#if 1
 void zmain(void)
 {
     Ultra_Start();              // Ultra Sonic Start function
     motor_start();              // enable motor controller
     motor_forward(0,0);         // set speed to zero to stop motors
     int dis=0;                  // the distance
-    int decider=0;              // decidde
+    int decider=0;              // decide
     int turn;                   // turns
     struct sensors_ dig;        // sensor
     uint32_t count =0;          // count line
     uint32_t startTime =0;      // start time
     IR_Start();                 // start IR
     uint32_t movementTime =0;   // movement time
-    int timepress;              // when pres
+    int timepress;              // physical button time
     reflectance_start();        // start the sensor
     
-printf("\n\n\n!!!BOOT!!!\n\n\n"); //clear programming buffer
-reflectance_set_threshold(
-    9000, 9000, 11000, 11000, 9000,
-    9000); // set center sensor threshold to 11000 and others to 9000
-// read digital values that are based on threshold. 0 = white, 1 = black
-// when blackness value is over threshold the sensors reads 1, otherwise 0
-reflectance_digital(&dig);
-
+printf("\n\n\n!!!BOOT!!!\n\n\n");   //clear programming buffer
+reflectance_set_threshold(9000,     // set center sensor threshold to 11000 and others to 9000
+ 9000, 11000, 11000, 9000, 9000);   // read digital values that are based on threshold. 0 = white, 1 = black
+reflectance_digital(&dig);          // when blackness value is over threshold the sensors reads 1, otherwise 0
+                               
+                                
 while (SW1_Read() != PRESSED) // while value is not 0
-  BatteryLed_Write(ON);       // Turns led on
+BatteryLed_Write(ON);         // Turns led on
 vTaskDelay(1000);             // sleep (in an infinite loop)
 BatteryLed_Write(OFF);        // Turns led off
-
 
 reflectance_digital(&dig);
 
 //LINE UP CODE
-while (count < 1) { //while the count is below 1
+while (count < 1) {                 //while the count is below 1
   reflectance_digital(&dig);
-  motor_forward(50, 0); // moves forward
-  if (dig.L3 && dig.R3) { //If the dig L3 and R3 senses anything to the this
-    while (dig.L3 && dig.R3) {  //while the dig L3 and R3 senses anything to the code below
+  motor_forward(50, 0);             // moves forward
+  if (dig.L3 && dig.R3) {           //If the dig L3 and R3 senses anything, do the code below
+    while (dig.L3 && dig.R3) {      //while the dig L3 and R3 senses anything, do the code below
         
       reflectance_digital(&dig);
-      if (!(dig.L3 && dig.R3)) { //if the dig L3 and R3  does not senses anything to the code below
-        count++; //add count 1
-        print_mqtt(READY, "zumo"); // when the robots in line
+      if (!(dig.L3 && dig.R3)) {    //if the dig L3 and R3  does not sense anything, do the code below
+        count++;                    //add count 1
+        print_mqtt(READY, "zumo");  // when robot is on the line
       }
     }
   }
 }
 
-motor_forward(0, 0);                         // stop
-IR_wait();                                   // waits for the button press of ir
-startTime = xTaskGetTickCount();             // get the time when on position
-print_mqtt(START, "%d", startTime); // print start time
+motor_forward(0, 0);                 // stop
+IR_wait();                           // waits for the button press of IR
+startTime = xTaskGetTickCount();     // get the time when on position
+print_mqtt(START, "%d", startTime);  // print start time
 
 // THE DODGING CODE
 while (count < 2) {
-  turn = rand() % 111 + 60;           // random turn of decgress
-  movementTime = xTaskGetTickCount(); // coounts tick
+  turn = rand() % 111 + 60;           // random turn of degrees
+  movementTime = xTaskGetTickCount(); // counts tick
   dis = Ultra_GetDistance();          // sensor getting distance
-  reflectance_digital(&dig); // Print the detected distance (centimeters)
-  motor_forward(100, 0);     // moving forward
+  reflectance_digital(&dig);          // Prints the detected distance (centimeters)
+  motor_forward(100, 0);              // moving forward
 
   if (dis <= 10) {
-    motor_backward(100, 200); // moving backward
-    decider = rand() % 2 + 1; // decide what direction will turn
+    motor_backward(100, 200);         // moving backward
+    decider = rand() % 2 + 1;         // decide what direction will turn
     if (decider == 1) {
-      tank_mode_left(turn, 370); // turn left tank
+      tank_mode_left(turn, 370);      // turn left tank
       print_mqtt(OBSTACLE, "%d",
-                 xTaskGetTickCount()); // if their is a obstacle prints the time
-                                       // and prints it
+      xTaskGetTickCount());           // if there is an obstacle: print the time
+                                      
     } else {
-      tank_mode_right(turn, 375); // turn right tank
+      tank_mode_right(turn, 375);  // turn right tank
       print_mqtt(OBSTACLE, "%d", xTaskGetTickCount());
     }
   } else if ((dig.L3 && dig.L2) ||
@@ -158,12 +155,12 @@ while (count < 2) {
     motor_backward(100, 200);      // moving backward
 
     decider = rand() % 2 +
-              1; // decide what direction will turn made two cause for funnys
+              1;                   // decide what direction will turn made two cause for funnys
     if (decider == 1) {
-      tank_mode_left(turn, 370); // turn left tank
+      tank_mode_left(turn, 370);   // turn left tank
       print_mqtt(OBSTACLE, "%d", xTaskGetTickCount());
     } else {
-      tank_mode_right(turn, 375); // turn right tank
+      tank_mode_right(turn, 375);   // turn right tank
       print_mqtt(OBSTACLE, "%d", xTaskGetTickCount());
     }
   }
