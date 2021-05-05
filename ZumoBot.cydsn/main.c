@@ -372,19 +372,21 @@ while(x<14){
     if(sDirection==0){ //if the direction is straight
       while (dig.L3 || dig.R3) {
         reflectance_digital(&dig);
-        if (!dig.R3||!dig.L3) { //if the dig L3 and R3 does not senses anything increase count and print ready
+        if (dig.L2&&dig.L1){
+        if (!(dig.R3||dig.L3)) { //if the dig L3 and R3 does not senses anything increase count and print ready
          
           x++;
           print_mqtt(READY, "x %d  %d",x,y);
 
         }
-      }
+      }}
     
     }
 
         if(lDirection==1){ //if the direction is straight
       while (dig.L3 || dig.R3) {
         reflectance_digital(&dig);
+        
         if (!dig.R3&&!dig.L3&&dig.L1) { //if the dig L3 and R3 does not senses anything increase count and print ready
           y--;
           print_mqtt(READY, "%d and y-- %d",x,y);
@@ -462,7 +464,7 @@ tank_mode_left(9,0);// turn left tank
 }
 nano=dig.R2+dig.R3;
 result=dig.L1 + dig.R1;
-if(x==12&&sDirection==0&&y==3){    
+if((x==12 && y==3)||(sDirection==0&&result==0)){    
         lDirection=1;
         sDirection=1; 
     print_mqtt(READY, "1");
@@ -483,10 +485,7 @@ if(x==12&&sDirection==0&&y==3){
 
 else if (result==0&&rDirection==1){ //on the border
         print_mqtt(READY, "2");
-       while(!dig.L1){
-            reflectance_digital(&dig);
-            tank_mode_left(10,0);// turn left tank
-            }
+ 
            while(!(dig.L1&&dig.R1&&dig.L2)){
             reflectance_digital(&dig);
             result=dig.L1 + dig.R1;
