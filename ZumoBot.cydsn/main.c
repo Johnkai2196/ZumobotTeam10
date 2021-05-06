@@ -326,13 +326,13 @@ while (true) {
 void correction(int left, int right);
 // project 3
 void zmain(void) {
-  struct sensors_ dig; // sensor
-  uint32_t count = 0;  // line counter
-  uint32_t endTime = 0;  //end time
-  uint32_t starTime = 0; //start time
-  uint32_t stopTime = 0; //stop time
+  struct sensors_ dig;   // sensor
+  uint32_t count = 0;    // line counter
+  uint32_t endTime = 0;  // end time
+  uint32_t starTime = 0; // start time
+  uint32_t stopTime = 0; // stop time
   uint32_t x = 0, y = 0, d, rDirection = 0, lDirection = 0, sDirection = 0,
-           round = 0,taken,rounder=0,
+           round = 0, taken, rounder = 0,
            result;     // variable
   IR_Start();          // start the ir button
   Ultra_Start();       // Ultra Sonic Start function
@@ -344,7 +344,7 @@ void zmain(void) {
   reflectance_set_threshold(
       9000, 9000, 11000, 11000, 9000,
       9000); // set center sensor threshold to 11000 and others to 9000
-// when blackness value is over threshold the sensors reads 1, otherwise 0
+  // when blackness value is over threshold the sensors reads 1, otherwise 0
   reflectance_digital(&dig);
 
   while (SW1_Read() != PRESSED) // while value is not 0
@@ -356,9 +356,9 @@ void zmain(void) {
 
   while (count < 1) { // while the count is below 1
     reflectance_digital(&dig);
-    motor_forward(50, 0);   // moves forward to line
-    if (dig.L3 && dig.R3) { // if the L3 and R3 are 1 to the code below
-      while (dig.L3 && dig.R3) { //while the L3 and R3 are 1 to the code below
+    motor_forward(50, 0);        // moves forward to line
+    if (dig.L3 && dig.R3) {      // if the L3 and R3 are 1 to the code below
+      while (dig.L3 && dig.R3) { // while the L3 and R3 are 1 to the code below
         reflectance_digital(&dig);
         if (!(dig.L3 && dig.R3)) { // if the dig L3 and R3 does not senses
                                    // anything increase count and print ready
@@ -368,54 +368,53 @@ void zmain(void) {
       }
     }
   }
-
 motor_forward(0, 0);
-IR_wait(); // waits for the button press
-starTime = xTaskGetTickCount(); // counts from the time when robot was booted
+IR_wait();                         // waits for the button press
+starTime = xTaskGetTickCount();    // counts from the time when robot was booted
 print_mqtt(START, "%d", starTime); // start time
 
 while (true) {
-  d = Ultra_GetDistance(); // gets the distance
-  endTime=xTaskGetTickCount(); // counts the seconds when robot is moving
+  d = Ultra_GetDistance();       // gets the distance
+  endTime = xTaskGetTickCount(); // counts the seconds when robot is moving
   // moves forward
   motor_forward(60, 0);
   reflectance_digital(&dig);
   if (sDirection == 0) {       // if the direction is straight
-    while (dig.L3 &&dig.L2) { // while the dig L3 or R3 detect anything it will
+    while (dig.L3 && dig.L2) { // while the dig L3 or R3 detect anything it will
                                // do the code below
       reflectance_digital(&dig);
       if (!(dig.L2 &&
-          dig.L3)) { // if the dig L3 and R3 does not senses anything increase
-        x++; // increase x
-       print_mqtt(POSITION,"%d %d",y,x);
+            dig.L3)) { // if the dig L3 and R3 does not senses anything increase
+        x++;           // increase x
+        print_mqtt(POSITION, "%d %d", y, x);
       }
     }
   }
 
   if (lDirection == 1) {       // if the direction is left
-    while (dig.L3 &&dig.L2) { // while the dig L3 or R3 detect anything it will
+    while (dig.L3 && dig.L2) { // while the dig L3 or R3 detect anything it will
                                // do the code below
       reflectance_digital(&dig);
       if (!(dig.L2 &&
-          dig.L3)) { // if the dig L3 and R3 does not senses anything increase
-        y--; // decrease y
-             print_mqtt(POSITION,"%d %d",y,x);
-        taken = 1; //this so it can turn right to check the obstacle
+            dig.L3)) { // if the dig L3 and R3 does not senses anything increase
+        y--;           // decrease y
+        print_mqtt(POSITION, "%d %d", y, x);
+        taken = 1; // this so it can turn right to check the obstacle
       }
     }
   }
   if (rDirection == 1) {       // if the direction is right
-    while (dig.L3 &&dig.L2) { // while the dig L3 or R3 detect anything it will
+    while (dig.L3 && dig.L2) { // while the dig L3 or R3 detect anything it will
                                // do the code below
       reflectance_digital(&dig);
       if (!(dig.L2 &&
-          dig.L3)) { // if the dig L3 and R3 does not senses anything increase
-        y++; // increase y
-             print_mqtt(POSITION,"%d %d",y,x);
+            dig.L3)) { // if the dig L3 and R3 does not senses anything increase
+        y++;           // increase y
+        print_mqtt(POSITION, "%d %d", y, x);
       }
     }
-  }   
-if (d <= 7) {        // if the distance is smaller then or equal 7
+  }
+if (d <= 7) {       // if the distance is smaller then or equal 7
   if (round == 0) { // if round is zero
     while (dig.R1) {
       reflectance_digital(&dig);
@@ -436,9 +435,9 @@ if (d <= 7) {        // if the distance is smaller then or equal 7
     while (!(dig.L1 && dig.R1)) {
       reflectance_digital(&dig);
       tank_mode_left(10, 0); // turn left tank
-      sDirection = 1; //activate the if of straight so it will count it
-      lDirection = 1;//activate the if of left so it will count it
-      round = 2; //sets the second when checking the distance
+      sDirection = 1;        // activate the if of straight so it will count it
+      lDirection = 1;        // activate the if of left so it will count it
+      round = 2;             // sets the second when checking the distance
     }
   }
 }
@@ -470,50 +469,50 @@ if (!dig.R1) {
 }
 result = dig.L1 + dig.R1;
 if ((x == 12 && y == 3) ||
-    (sDirection == 0 &&
-     result == 0)) { // on the border turn
+    (sDirection == 0 && result == 0)) { // on the border turn
   lDirection = 1;
   sDirection = 1;
 
-    while (!(dig.L1 && dig.R1)) {
+  while (!(dig.L1 && dig.R1)) {
     reflectance_digital(&dig);
     motor_turn(0, 30, 0); // turn left tank
   }
-} else if (result==0&&rDirection == 1) { // on the border turn
+} else if (result == 0 && rDirection == 1) { // on the border turn
   while (!(dig.L1 && dig.R1 && dig.L2)) {
     reflectance_digital(&dig);
     motor_turn(0, 150, 0); // turn left tank
   }
   sDirection = 0;
   lDirection = 0;
-}else if(x==12&&y==0){
+} else if (x == 12 && y == 0) {
   vTaskDelay(200);
-if(rounder==0){
-  while (dig.L1) {
-    reflectance_digital(&dig);
-    tank_mode_right(10, 0); // turn right tank
+  if (rounder == 0) {
+    while (dig.L1) {
+      reflectance_digital(&dig);
+      tank_mode_right(10, 0); // turn right tank
+    }
+    while (!(dig.L1 && dig.L2)) {
+      reflectance_digital(&dig);
+      tank_mode_right(10, 0); // turn right tank
+      sDirection = 0;
+      lDirection = 0;
+    }
+    rounder = 1;
   }
-  while (!(dig.L1 && dig.L2)) {
-    reflectance_digital(&dig);
-    tank_mode_right(10, 0); // turn right tank
-    sDirection = 0;
-    lDirection = 0;
-  }
-    rounder=1;
 }
-}if(x==14){
-    
-vTaskDelay(200);
-motor_forward(0,0);
-motor_stop(0,0);
-stopTime = endTime+2000 - starTime;
- 
-print_mqtt(STOP, "%d", endTime);
-print_mqtt(TIME, "%d", stopTime);
+if (x == 14) {
 
-while (true) {
-  vTaskDelay(100); // sleep (in an infinite loop)
-}
+  vTaskDelay(200);
+  motor_forward(0, 0);
+  motor_stop(0, 0);
+  stopTime = endTime + 2000 - starTime;
+
+  print_mqtt(STOP, "%d", endTime);
+  print_mqtt(TIME, "%d", stopTime);
+
+  while (true) {
+    vTaskDelay(100); // sleep (in an infinite loop)
+  }
 }
 }
 }
